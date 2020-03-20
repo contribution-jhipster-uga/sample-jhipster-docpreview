@@ -1,0 +1,44 @@
+DOC_CONTENT_MAX_BYTES = 5000000
+DOC_DESCRIPTION_MAX_LENGTH = 2000
+SHA_LEN = 40
+
+/**
+ * Entity Doc
+ */
+entity Doc {
+    /**
+     * Title du document
+     */
+    title String required minlength(2),
+
+    /**
+    * Language of the document (iso code).
+    */
+    language String,
+
+    /**
+    * Description of the document
+    */
+    description String maxlength(DOC_DESCRIPTION_MAX_LENGTH),
+
+    /**
+    * Content of the document
+    */
+    content Blob maxbytes(DOC_CONTENT_MAX_BYTES) required,
+    contentSha1 String minlength(SHA_LEN) maxlength(SHA_LEN) pattern(/[a-f0-9]{40}/),
+
+    /**
+    * Number of pages of the document
+    */
+    numberOfPages Integer,
+
+    /**
+    * Creation date
+    */
+    createdAt Instant required,
+
+    /**
+    * Update date
+    */
+    updatedAt Instant
+}
