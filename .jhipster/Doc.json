@@ -1,0 +1,83 @@
+{
+    "name": "Doc",
+    "fields": [
+        {
+            "fieldName": "title",
+            "javadoc": "Title du document",
+            "fieldType": "String",
+            "fieldValidateRules": [
+                "required",
+                "minlength"
+            ],
+            "fieldValidateRulesMinlength": "2"
+        },
+        {
+            "fieldName": "language",
+            "javadoc": "Language of the document (iso code).",
+            "fieldType": "String"
+        },
+        {
+            "fieldName": "description",
+            "javadoc": "Description of the document",
+            "fieldType": "String",
+            "fieldValidateRules": [
+                "maxlength"
+            ],
+            "fieldValidateRulesMaxlength": "2000"
+        },
+        {
+            "fieldName": "content",
+            "javadoc": "Content of the document",
+            "fieldType": "byte[]",
+            "fieldTypeBlobContent": "any",
+            "fieldValidateRules": [
+                "maxbytes",
+                "required"
+            ],
+            "fieldValidateRulesMaxbytes": "5000000"
+        },
+        {
+            "fieldName": "contentSha1",
+            "fieldType": "String",
+            "fieldValidateRules": [
+                "minlength",
+                "maxlength",
+                "pattern"
+            ],
+            "fieldValidateRulesMinlength": "40",
+            "fieldValidateRulesMaxlength": "40",
+            "fieldValidateRulesPattern": "[a-f0-9]{40}"
+        },
+        {
+            "fieldName": "numberOfPages",
+            "javadoc": "Number of pages of the document",
+            "fieldType": "Integer"
+        },
+        {
+            "fieldName": "createdAt",
+            "javadoc": "Creation date",
+            "fieldType": "Instant",
+            "fieldValidateRules": [
+                "required"
+            ]
+        },
+        {
+            "fieldName": "updatedAt",
+            "javadoc": "Update date",
+            "fieldType": "Instant"
+        }
+    ],
+    "relationships": [],
+    "changelogDate": "20200320190200",
+    "javadoc": "Entity Doc",
+    "entityTableName": "doc",
+    "dto": "no",
+    "pagination": "no",
+    "service": "no",
+    "jpaMetamodelFiltering": false,
+    "fluentMethods": true,
+    "readOnly": false,
+    "embedded": false,
+    "clientRootFolder": "",
+    "applications": "*"
+}

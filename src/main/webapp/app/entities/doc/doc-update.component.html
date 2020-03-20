@@ -1,0 +1,139 @@
+<div class="row justify-content-center">
+    <div class="col-8">
+        <form name="editForm" role="form" novalidate (ngSubmit)="save()" [formGroup]="editForm">
+            <h2 id="jhi-doc-heading" jhiTranslate="docpreviewApp.doc.home.createOrEditLabel">Create or edit a Doc</h2>
+
+            <div>
+                <jhi-alert-error></jhi-alert-error>
+
+                <div class="form-group" [hidden]="!editForm.get('id')!.value">
+                    <label for="id" jhiTranslate="global.field.id">ID</label>
+                    <input type="text" class="form-control" id="id" name="id" formControlName="id" readonly />
+                </div>
+
+                <div class="form-group">
+                    <label class="form-control-label" jhiTranslate="docpreviewApp.doc.title" for="field_title" [ngbTooltip]="'docpreviewApp.doc.help.title' | translate">Title</label>
+                    <input type="text" class="form-control" name="title" id="field_title"
+                           formControlName="title"/>
+                    <div *ngIf="editForm.get('title')!.invalid && (editForm.get('title')!.dirty || editForm.get('title')!.touched)">
+                        <small class="form-text text-danger"
+                               *ngIf="editForm.get('title')?.errors?.required" jhiTranslate="entity.validation.required">
+                        This field is required.
+                        </small>
+                        <small class="form-text text-danger"
+                               *ngIf="editForm.get('title')?.errors?.minlength" jhiTranslate="entity.validation.minlength" [translateValues]="{ min: 2 }">
+                        This field is required to be at least 2 characters.
+                        </small>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-control-label" jhiTranslate="docpreviewApp.doc.language" for="field_language" [ngbTooltip]="'docpreviewApp.doc.help.language' | translate">Language</label>
+                    <input type="text" class="form-control" name="language" id="field_language"
+                           formControlName="language"/>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-control-label" jhiTranslate="docpreviewApp.doc.description" for="field_description" [ngbTooltip]="'docpreviewApp.doc.help.description' | translate">Description</label>
+                    <input type="text" class="form-control" name="description" id="field_description"
+                           formControlName="description"/>
+                    <div *ngIf="editForm.get('description')!.invalid && (editForm.get('description')!.dirty || editForm.get('description')!.touched)">
+                        <small class="form-text text-danger"
+                               *ngIf="editForm.get('description')?.errors?.maxlength" jhiTranslate="entity.validation.maxlength" [translateValues]="{ max: 2000 }">
+                        This field cannot be longer than 2000 characters.
+                        </small>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-control-label" jhiTranslate="docpreviewApp.doc.content" for="field_content" [ngbTooltip]="'docpreviewApp.doc.help.content' | translate">Content</label>
+                    <div>
+                        <div *ngIf="editForm.get('content')!.value" class="form-text text-danger clearfix">
+                            <a class="pull-left" (click)="openFile(editForm.get('contentContentType')!.value, editForm.get('content')!.value)" jhiTranslate="entity.action.open">open</a><br>
+                            <span class="pull-left">{{ editForm.get('contentContentType')!.value }}, {{ byteSize(editForm.get('content')!.value) }}</span>
+                            <button type="button" (click)="editForm.patchValue({content: null});editForm.patchValue({contentContentType: null});"
+                                    class="btn btn-secondary btn-xs pull-right">
+                                <fa-icon icon="times"></fa-icon>
+                            </button>
+                        </div>
+                        <input type="file" id="file_content" (change)="setFileData($event, 'content', false)" jhiTranslate="entity.action.addblob"/>
+                    </div>
+                    <input type="hidden" class="form-control" name="content" id="field_content"
+                           formControlName="content"/>
+                    <input type="hidden" class="form-control" name="contentContentType" id="field_contentContentType"
+                           formControlName="contentContentType" />
+                    <div *ngIf="editForm.get('content')!.invalid && (editForm.get('content')!.dirty || editForm.get('content')!.touched)">
+                        <small class="form-text text-danger"
+                               *ngIf="editForm.get('content')?.errors?.required" jhiTranslate="entity.validation.required">
+                        This field is required.
+                        </small>
+                        <small class="form-text text-danger"
+                               *ngIf="editForm.get('content')?.errors?.maxbytes" jhiTranslate="entity.validation.maxbytes" [translateValues]="{ max: 5000000 }">
+                            This field cannot be more than 5000000.
+                        </small>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-control-label" jhiTranslate="docpreviewApp.doc.contentSha1" for="field_contentSha1">Content Sha 1</label>
+                    <input type="text" class="form-control" name="contentSha1" id="field_contentSha1"
+                           formControlName="contentSha1"/>
+                    <div *ngIf="editForm.get('contentSha1')!.invalid && (editForm.get('contentSha1')!.dirty || editForm.get('contentSha1')!.touched)">
+                        <small class="form-text text-danger"
+                               *ngIf="editForm.get('contentSha1')?.errors?.minlength" jhiTranslate="entity.validation.minlength" [translateValues]="{ min: 40 }">
+                        This field is required to be at least 40 characters.
+                        </small>
+                        <small class="form-text text-danger"
+                               *ngIf="editForm.get('contentSha1')?.errors?.maxlength" jhiTranslate="entity.validation.maxlength" [translateValues]="{ max: 40 }">
+                        This field cannot be longer than 40 characters.
+                        </small>
+                        <small class="form-text text-danger"
+                               *ngIf="editForm.get('contentSha1')?.errors?.pattern" jhiTranslate="entity.validation.pattern" [translateValues]="{ pattern: 'Content Sha 1' }">
+                            This field should follow pattern for "Content Sha 1".
+                        </small>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-control-label" jhiTranslate="docpreviewApp.doc.numberOfPages" for="field_numberOfPages" [ngbTooltip]="'docpreviewApp.doc.help.numberOfPages' | translate">Number Of Pages</label>
+                    <input type="number" class="form-control" name="numberOfPages" id="field_numberOfPages"
+                           formControlName="numberOfPages"/>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-control-label" jhiTranslate="docpreviewApp.doc.createdAt" for="field_createdAt" [ngbTooltip]="'docpreviewApp.doc.help.createdAt' | translate">Created At</label>
+                    <div class="d-flex">
+                        <input id="field_createdAt" type="datetime-local" class="form-control" name="createdAt" formControlName="createdAt" placeholder="YYYY-MM-DD HH:mm"/>
+                    </div>
+                    <div *ngIf="editForm.get('createdAt')!.invalid && (editForm.get('createdAt')!.dirty || editForm.get('createdAt')!.touched)">
+                        <small class="form-text text-danger"
+                               *ngIf="editForm.get('createdAt')?.errors?.required" jhiTranslate="entity.validation.required">
+                        This field is required.
+                        </small>
+                        <small class="form-text text-danger"
+                            [hidden]="!editForm.get('createdAt')?.errors?.ZonedDateTimelocal" jhiTranslate="entity.validation.ZonedDateTimelocal">
+                            This field should be a date and time.
+                        </small>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-control-label" jhiTranslate="docpreviewApp.doc.updatedAt" for="field_updatedAt" [ngbTooltip]="'docpreviewApp.doc.help.updatedAt' | translate">Updated At</label>
+                    <div class="d-flex">
+                        <input id="field_updatedAt" type="datetime-local" class="form-control" name="updatedAt" formControlName="updatedAt" placeholder="YYYY-MM-DD HH:mm"/>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <button type="button" id="cancel-save" class="btn btn-secondary" (click)="previousState()">
+                    <fa-icon icon="ban"></fa-icon>&nbsp;<span jhiTranslate="entity.action.cancel">Cancel</span>
+                </button>
+
+                <button type="submit" id="save-entity" [disabled]="editForm.invalid || isSaving" class="btn btn-primary">
+                    <fa-icon icon="save"></fa-icon>&nbsp;<span jhiTranslate="entity.action.save">Save</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

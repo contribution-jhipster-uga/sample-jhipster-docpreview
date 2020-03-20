@@ -1,0 +1,38 @@
+{
+  "docpreviewApp": {
+    "doc": {
+      "home": {
+        "title": "Docs",
+        "createLabel": "Create a new Doc",
+        "createOrEditLabel": "Create or edit a Doc",
+        "notFound": "No Docs found"
+      },
+      "created": "A new Doc is created with identifier {{ param }}",
+      "updated": "A Doc is updated with identifier {{ param }}",
+      "deleted": "A Doc is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete Doc {{ id }}?"
+      },
+      "detail": {
+        "title": "Doc"
+      },
+      "title": "Title",
+      "language": "Language",
+      "description": "Description",
+      "content": "Content",
+      "contentSha1": "Content Sha 1",
+      "numberOfPages": "Number Of Pages",
+      "createdAt": "Created At",
+      "updatedAt": "Updated At",
+      "help": {
+        "title": "Title du document",
+        "language": "Language of the document (iso code).",
+        "description": "Description of the document",
+        "content": "Content of the document",
+        "numberOfPages": "Number of pages of the document",
+        "createdAt": "Creation date",
+        "updatedAt": "Update date"
+      }
+    }
+  }
+}
