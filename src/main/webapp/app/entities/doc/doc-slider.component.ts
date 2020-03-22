@@ -105,7 +105,7 @@ export class DocSliderComponent implements OnInit {
     if (this.config.slidesPerView !== 1) {
       this.config.slidesPerView = 1;
     } else {
-      this.config.slidesPerView = 2;
+      this.config.slidesPerView = 1.6;
     }
   }
 

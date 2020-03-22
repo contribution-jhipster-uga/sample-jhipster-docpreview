@@ -6,6 +6,16 @@
   line-height: 24px;
 }
 
+.img-container {
+  text-align: center;
+
+  img {
+    border: 2mm ridge rgba(50, 156, 220, 0.6);
+    min-height: 100%;
+    max-width: 100%;
+  }
+}
+
 .action-container,
 .content-container {
   position: relative;

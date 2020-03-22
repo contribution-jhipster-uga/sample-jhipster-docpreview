@@ -46,9 +46,8 @@
                             (swiperTransitionStart)="onSwiperEvent('transitionStart')"
                             (swiperTransitionEnd)="onSwiperEvent('transitionEnd')">
                             <div *ngFor="let slide of slides" class="swiper-slide">
-                                <div fxLayout="column" fxLayoutAlign="center center" fxFlexFill>
-                                    <img [src]="'/api/docs/' + slide.id + '/img/' + slide.page | authImage | async"
-                                        style="min-height: 100%; max-width: 100%;" />
+                                <div fxLayout="column" fxLayoutAlign="center center" fxFlexFill class="img-container">
+                                    <img [src]="'/api/docs/' + slide.id + '/img/' + slide.page | authImage | async" />
                                 </div>
                             </div>
                         </swiper>
@@ -59,9 +58,8 @@
                             (swiperTransitionEnd)="onSwiperEvent('transitionEnd')">
                             <div class="swiper-wrapper">
                                 <div *ngFor="let slide of slides" class="swiper-slide">
-                                    <div fxLayout="column" fxLayoutAlign="center center" fxFlexFill>
-                                        <img [src]="'/api/docs/' + slide.id + '/img/' + slide.page | authImage | async"
-                                            style="min-height: 100%; max-width: 100%;" />
+                                    <div fxLayout="column" fxLayoutAlign="center center" fxFlexFill class="img-container">
+                                        <img [src]="'/api/docs/' + slide.id + '/img/' + slide.page | authImage | async"/>
                                     </div>
                                 </div>
                             </div>
