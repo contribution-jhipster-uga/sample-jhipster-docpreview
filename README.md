@@ -1,9 +1,9 @@
 # Document Previewer
 
-The simple monolithic application demonstrates:
+This simple monolithic application demonstrates:
 
 - the extraction of the images of the PDF document pages using Apache Tika,
-- the storage of the images files into the local filesystem,
+- the storage of the images files into the local filesystem (using cache control),
 - the display of the pages using the [ngx-swiper-wrapper](https://github.com/zefoy/ngx-swiper-wrapper) library.
 
 ![ngx-swiper-wrapper previewer](./screenshot.png)
