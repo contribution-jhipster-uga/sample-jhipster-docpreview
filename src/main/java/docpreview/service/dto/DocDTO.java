@@ -39,15 +39,13 @@ public class DocDTO implements Serializable {
 
     /**
      * Content of the document
-     */
-    
+     */  
     @ApiModelProperty(value = "Content of the document", required = true)
     @Lob
     private byte[] content;
 
     private String contentContentType;
-    @Size(min = 40, max = 40)
-    @Pattern(regexp = "[a-f0-9]{40}")
+    @Pattern(regexp = "$([a-f0-9]{40}$)?$")
     private String contentSha1;
 
     /**
@@ -59,7 +57,7 @@ public class DocDTO implements Serializable {
     /**
      * Creation date
      */
-    @NotNull
+    // @NotNull
     @ApiModelProperty(value = "Creation date", required = true)
     private Instant createdAt;
 
