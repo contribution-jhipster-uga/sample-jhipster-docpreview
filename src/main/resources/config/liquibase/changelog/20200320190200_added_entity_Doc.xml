@@ -18,7 +18,7 @@
             <column name="title" type="varchar(255)" remarks="Title du document">
                 <constraints nullable="false" />
             </column>
-            <column name="language" type="varchar(255)" remarks="Language of the document (iso code).">
+            <column name="language" type="varchar(255)" remarks="Language of the document (ISO code).">
                 <constraints nullable="true" />
             </column>
             <column name="description" type="varchar(2000)" remarks="Description of the document">

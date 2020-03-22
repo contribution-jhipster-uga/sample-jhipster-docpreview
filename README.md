@@ -1,4 +1,16 @@
-# docpreview
+# Document Previewer
+
+The simple monolithic application demonstrates:
+
+- the extraction of the images of the PDF document pages using Apache Tika,
+- the storage of the images files into the local filesystem,
+- the display of the pages using the [ngx-swiper-wrapper](https://github.com/zefoy/ngx-swiper-wrapper) library.
+
+![ngx-swiper-wrapper previewer](./screenshot.png)
+
+The JDL for the application generation is [here](./docpreview.png).
+
+## Initial generation
 
 This application was generated using JHipster 6.8.0, you can find documentation and help at [https://www.jhipster.tech/documentation-archive/v6.8.0](https://www.jhipster.tech/documentation-archive/v6.8.0).
 

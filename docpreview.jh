@@ -12,7 +12,7 @@ entity Doc {
     title String required minlength(2),
 
     /**
-    * Language of the document (iso code).
+    * Language of the document (ISO code).
     */
     language String,
 
@@ -42,3 +42,15 @@ entity Doc {
     */
     updatedAt Instant
 }
+// Set pagination options
+paginate * with pagination
+// Use Data Transfert Objects (DTO)
+dto * with mapstruct
+// Set service options to all except few
+service all with serviceImpl
+// Set an angular suffix
+//angularSuffix * with relaximmo
+// Set search
+// search * with elasticsearch
+//Set filtering
+filter *

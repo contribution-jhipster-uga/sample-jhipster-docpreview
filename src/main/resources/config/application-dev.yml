@@ -123,3 +123,6 @@ jhipster:
 # ===================================================================
 
 # application:
+
+filesystem:
+  rootdir: ./target/filesystem

@@ -8,22 +8,27 @@
             <jhi-alert-error></jhi-alert-error>
 
             <dl class="row-md jh-entity-details">
-                <dt><span jhiTranslate="docpreviewApp.doc.title" [ngbTooltip]="'docpreviewApp.doc.help.title' | translate">Title</span></dt>
+                <dt><span jhiTranslate="docpreviewApp.doc.title"
+                        [ngbTooltip]="'docpreviewApp.doc.help.title' | translate">Title</span></dt>
                 <dd>
                     <span>{{ doc.title }}</span>
                 </dd>
-                <dt><span jhiTranslate="docpreviewApp.doc.language" [ngbTooltip]="'docpreviewApp.doc.help.language' | translate">Language</span></dt>
+                <dt><span jhiTranslate="docpreviewApp.doc.language"
+                        [ngbTooltip]="'docpreviewApp.doc.help.language' | translate">Language</span></dt>
                 <dd>
                     <span>{{ doc.language }}</span>
                 </dd>
-                <dt><span jhiTranslate="docpreviewApp.doc.description" [ngbTooltip]="'docpreviewApp.doc.help.description' | translate">Description</span></dt>
+                <dt><span jhiTranslate="docpreviewApp.doc.description"
+                        [ngbTooltip]="'docpreviewApp.doc.help.description' | translate">Description</span></dt>
                 <dd>
                     <span>{{ doc.description }}</span>
                 </dd>
-                <dt><span jhiTranslate="docpreviewApp.doc.content" [ngbTooltip]="'docpreviewApp.doc.help.content' | translate">Content</span></dt>
+                <dt><span jhiTranslate="docpreviewApp.doc.content"
+                        [ngbTooltip]="'docpreviewApp.doc.help.content' | translate">Content</span></dt>
                 <dd>
                     <div *ngIf="doc.content">
-                        <a (click)="openFile(doc?.contentContentType!, doc?.content)" jhiTranslate="entity.action.open">open</a>
+                        <a (click)="openFile(doc?.contentContentType!, doc?.content)"
+                            jhiTranslate="entity.action.open">open</a>
                         {{ doc.contentContentType }}, {{ byteSize(doc.content) }}
                     </div>
                 </dd>
@@ -31,29 +36,54 @@
                 <dd>
                     <span>{{ doc.contentSha1 }}</span>
                 </dd>
-                <dt><span jhiTranslate="docpreviewApp.doc.numberOfPages" [ngbTooltip]="'docpreviewApp.doc.help.numberOfPages' | translate">Number Of Pages</span></dt>
-                <dd>
+                <dt *ngIf="doc.numberOfPages"><span jhiTranslate="docpreviewApp.doc.numberOfPages"
+                        [ngbTooltip]="'docpreviewApp.doc.help.numberOfPages' | translate">Number Of Pages</span></dt>
+                <dd *ngIf="doc.numberOfPages">
                     <span>{{ doc.numberOfPages }}</span>
                 </dd>
-                <dt><span jhiTranslate="docpreviewApp.doc.createdAt" [ngbTooltip]="'docpreviewApp.doc.help.createdAt' | translate">Created At</span></dt>
+                <dt><span jhiTranslate="docpreviewApp.doc.createdAt"
+                        [ngbTooltip]="'docpreviewApp.doc.help.createdAt' | translate">Created At</span></dt>
                 <dd>
                     <span>{{ doc.createdAt }}</span>
                 </dd>
-                <dt><span jhiTranslate="docpreviewApp.doc.updatedAt" [ngbTooltip]="'docpreviewApp.doc.help.updatedAt' | translate">Updated At</span></dt>
+                <dt><span jhiTranslate="docpreviewApp.doc.updatedAt"
+                        [ngbTooltip]="'docpreviewApp.doc.help.updatedAt' | translate">Updated At</span></dt>
                 <dd>
                     <span>{{ doc.updatedAt }}</span>
                 </dd>
+
+                <dt *ngIf="doc.numberOfPages"><span>Page 1</span></dt>
+                <dd *ngIf="doc.numberOfPages">
+                    <img [src]="'/api/docs/' + doc.id + '/img/1' | authImage | async"
+                        style="min-height: 100%; max-width: 100%;" />
+                </dd>
+                <!--
+                <dt *ngIf='isPdf()'><span>PDF Viewer</span></dt>
+                <dd>
+                    <iframe *ngIf='isPdf()'
+                        [src]="'/api/docs/' + doc.id + '/content' | authImage | async"
+                        [width]='pdfWidth' [height]='pdfHeight'></iframe>
+                </dd>
+
+                <dt *ngIf='isPdf()'><span>PDF Viewer</span></dt>
+                <dd>
+                    <iframe *ngIf='isPdf()'
+                        [src]='getSafeURL()'
+                        [width]='pdfWidth' [height]='pdfHeight'></iframe>
+                </dd>
+                -->
             </dl>
 
-            <button type="submit"
-                    (click)="previousState()"
-                    class="btn btn-info">
+            <button type="submit" (click)="previousState()" class="btn btn-info">
                 <fa-icon icon="arrow-left"></fa-icon>&nbsp;<span jhiTranslate="entity.action.back">Back</span>
             </button>
 
-            <button type="button"
-                    [routerLink]="['/doc', doc.id, 'edit']"
-                    class="btn btn-primary">
+            <button *ngIf="doc.numberOfPages" type="button" [routerLink]="['/doc', doc.id, 'slider']"
+                class="btn btn-primary">
+                <fa-icon icon="eye"></fa-icon>&nbsp;<span jhiTranslate="entity.action.preview">Preview</span>
+            </button>
+
+            <button type="button" [routerLink]="['/doc', doc.id, 'edit']" class="btn btn-primary">
                 <fa-icon icon="pencil-alt"></fa-icon>&nbsp;<span jhiTranslate="entity.action.edit">Edit</span>
             </button>
         </div>

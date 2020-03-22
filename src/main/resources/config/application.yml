@@ -166,3 +166,11 @@ jhipster:
 # ===================================================================
 
 # application:
+
+pdftoimage:
+  img:
+    dpi: 75
+    quality: 1.0
+
+filesystem:
+  rootdir: ./filesystem

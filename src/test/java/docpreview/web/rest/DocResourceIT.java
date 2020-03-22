@@ -3,6 +3,11 @@ package docpreview.web.rest;
 import docpreview.DocpreviewApp;
 import docpreview.domain.Doc;
 import docpreview.repository.DocRepository;
+import docpreview.service.DocService;
+import docpreview.service.dto.DocDTO;
+import docpreview.service.mapper.DocMapper;
+import docpreview.service.dto.DocCriteria;
+import docpreview.service.DocQueryService;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -52,6 +57,7 @@ public class DocResourceIT {
 
     private static final Integer DEFAULT_NUMBER_OF_PAGES = 1;
     private static final Integer UPDATED_NUMBER_OF_PAGES = 2;
+    private static final Integer SMALLER_NUMBER_OF_PAGES = 1 - 1;
 
     private static final Instant DEFAULT_CREATED_AT = Instant.ofEpochMilli(0L);
     private static final Instant UPDATED_CREATED_AT = Instant.now().truncatedTo(ChronoUnit.MILLIS);
@@ -61,6 +67,15 @@ public class DocResourceIT {
 
     @Autowired
     private DocRepository docRepository;
+
+    @Autowired
+    private DocMapper docMapper;
+
+    @Autowired
+    private DocService docService;
+
+    @Autowired
+    private DocQueryService docQueryService;
 
     @Autowired
     private EntityManager em;
@@ -120,9 +135,10 @@ public class DocResourceIT {
         int databaseSizeBeforeCreate = docRepository.findAll().size();
 
         // Create the Doc
+        DocDTO docDTO = docMapper.toDto(doc);
         restDocMockMvc.perform(post("/api/docs")
             .contentType(MediaType.APPLICATION_JSON)
-            .content(TestUtil.convertObjectToJsonBytes(doc)))
+            .content(TestUtil.convertObjectToJsonBytes(docDTO)))
             .andExpect(status().isCreated());
 
         // Validate the Doc in the database
@@ -147,11 +163,12 @@ public class DocResourceIT {
 
         // Create the Doc with an existing ID
         doc.setId(1L);
+        DocDTO docDTO = docMapper.toDto(doc);
 
         // An entity with an existing ID cannot be created, so this API call must fail
         restDocMockMvc.perform(post("/api/docs")
             .contentType(MediaType.APPLICATION_JSON)
-            .content(TestUtil.convertObjectToJsonBytes(doc)))
+            .content(TestUtil.convertObjectToJsonBytes(docDTO)))
             .andExpect(status().isBadRequest());
 
         // Validate the Doc in the database
@@ -168,10 +185,11 @@ public class DocResourceIT {
         doc.setTitle(null);
 
         // Create the Doc, which fails.
+        DocDTO docDTO = docMapper.toDto(doc);
 
         restDocMockMvc.perform(post("/api/docs")
             .contentType(MediaType.APPLICATION_JSON)
-            .content(TestUtil.convertObjectToJsonBytes(doc)))
+            .content(TestUtil.convertObjectToJsonBytes(docDTO)))
             .andExpect(status().isBadRequest());
 
         List<Doc> docList = docRepository.findAll();
@@ -186,10 +204,11 @@ public class DocResourceIT {
         doc.setCreatedAt(null);
 
         // Create the Doc, which fails.
+        DocDTO docDTO = docMapper.toDto(doc);
 
         restDocMockMvc.perform(post("/api/docs")
             .contentType(MediaType.APPLICATION_JSON)
-            .content(TestUtil.convertObjectToJsonBytes(doc)))
+            .content(TestUtil.convertObjectToJsonBytes(docDTO)))
             .andExpect(status().isBadRequest());
 
         List<Doc> docList = docRepository.findAll();
@@ -240,6 +259,589 @@ public class DocResourceIT {
             .andExpect(jsonPath("$.updatedAt").value(DEFAULT_UPDATED_AT.toString()));
     }
 
+
+    @Test
+    @Transactional
+    public void getDocsByIdFiltering() throws Exception {
+        // Initialize the database
+        docRepository.saveAndFlush(doc);
+
+        Long id = doc.getId();
+
+        defaultDocShouldBeFound("id.equals=" + id);
+        defaultDocShouldNotBeFound("id.notEquals=" + id);
+
+        defaultDocShouldBeFound("id.greaterThanOrEqual=" + id);
+        defaultDocShouldNotBeFound("id.greaterThan=" + id);
+
+        defaultDocShouldBeFound("id.lessThanOrEqual=" + id);
+        defaultDocShouldNotBeFound("id.lessThan=" + id);
+    }
+
+
+    @Test
+    @Transactional
+    public void getAllDocsByTitleIsEqualToSomething() throws Exception {
+        // Initialize the database
+        docRepository.saveAndFlush(doc);
+
+        // Get all the docList where title equals to DEFAULT_TITLE
+        defaultDocShouldBeFound("title.equals=" + DEFAULT_TITLE);
+
+        // Get all the docList where title equals to UPDATED_TITLE
+        defaultDocShouldNotBeFound("title.equals=" + UPDATED_TITLE);
+    }
+
+    @Test
+    @Transactional
+    public void getAllDocsByTitleIsNotEqualToSomething() throws Exception {
+        // Initialize the database
+        docRepository.saveAndFlush(doc);
+
+        // Get all the docList where title not equals to DEFAULT_TITLE
+        defaultDocShouldNotBeFound("title.notEquals=" + DEFAULT_TITLE);
+
+        // Get all the docList where title not equals to UPDATED_TITLE
+        defaultDocShouldBeFound("title.notEquals=" + UPDATED_TITLE);
+    }
+
+    @Test
+    @Transactional
+    public void getAllDocsByTitleIsInShouldWork() throws Exception {
+        // Initialize the database
+        docRepository.saveAndFlush(doc);
+
+        // Get all the docList where title in DEFAULT_TITLE or UPDATED_TITLE
+        defaultDocShouldBeFound("title.in=" + DEFAULT_TITLE + "," + UPDATED_TITLE);
+
+        // Get all the docList where title equals to UPDATED_TITLE
+        defaultDocShouldNotBeFound("title.in=" + UPDATED_TITLE);
+    }
+
+    @Test
+    @Transactional
+    public void getAllDocsByTitleIsNullOrNotNull() throws Exception {
+        // Initialize the database
+        docRepository.saveAndFlush(doc);
+
+        // Get all the docList where title is not null
+        defaultDocShouldBeFound("title.specified=true");
+
+        // Get all the docList where title is null
+        defaultDocShouldNotBeFound("title.specified=false");
+    }
+                @Test
+    @Transactional
+    public void getAllDocsByTitleContainsSomething() throws Exception {
+        // Initialize the database
+        docRepository.saveAndFlush(doc);
+
+        // Get all the docList where title contains DEFAULT_TITLE
+        defaultDocShouldBeFound("title.contains=" + DEFAULT_TITLE);
+
+        // Get all the docList where title contains UPDATED_TITLE
+        defaultDocShouldNotBeFound("title.contains=" + UPDATED_TITLE);
+    }
+
+    @Test
+    @Transactional
+    public void getAllDocsByTitleNotContainsSomething() throws Exception {
+        // Initialize the database
+        docRepository.saveAndFlush(doc);
+
+        // Get all the docList where title does not contain DEFAULT_TITLE
+        defaultDocShouldNotBeFound("title.doesNotContain=" + DEFAULT_TITLE);
+
+        // Get all the docList where title does not contain UPDATED_TITLE
+        defaultDocShouldBeFound("title.doesNotContain=" + UPDATED_TITLE);
+    }
+
+
+    @Test
+    @Transactional
+    public void getAllDocsByLanguageIsEqualToSomething() throws Exception {
+        // Initialize the database
+        docRepository.saveAndFlush(doc);
+
+        // Get all the docList where language equals to DEFAULT_LANGUAGE
+        defaultDocShouldBeFound("language.equals=" + DEFAULT_LANGUAGE);
+
+        // Get all the docList where language equals to UPDATED_LANGUAGE
+        defaultDocShouldNotBeFound("language.equals=" + UPDATED_LANGUAGE);
+    }
+
+    @Test
+    @Transactional
+    public void getAllDocsByLanguageIsNotEqualToSomething() throws Exception {
+        // Initialize the database
+        docRepository.saveAndFlush(doc);
+
+        // Get all the docList where language not equals to DEFAULT_LANGUAGE
+        defaultDocShouldNotBeFound("language.notEquals=" + DEFAULT_LANGUAGE);
+
+        // Get all the docList where language not equals to UPDATED_LANGUAGE
+        defaultDocShouldBeFound("language.notEquals=" + UPDATED_LANGUAGE);
+    }
+
+    @Test
+    @Transactional
+    public void getAllDocsByLanguageIsInShouldWork() throws Exception {
+        // Initialize the database
+        docRepository.saveAndFlush(doc);
+
+        // Get all the docList where language in DEFAULT_LANGUAGE or UPDATED_LANGUAGE
+        defaultDocShouldBeFound("language.in=" + DEFAULT_LANGUAGE + "," + UPDATED_LANGUAGE);
+
+        // Get all the docList where language equals to UPDATED_LANGUAGE
+        defaultDocShouldNotBeFound("language.in=" + UPDATED_LANGUAGE);
+    }
+
+    @Test
+    @Transactional
+    public void getAllDocsByLanguageIsNullOrNotNull() throws Exception {
+        // Initialize the database
+        docRepository.saveAndFlush(doc);
+
+        // Get all the docList where language is not null
+        defaultDocShouldBeFound("language.specified=true");
+
+        // Get all the docList where language is null
+        defaultDocShouldNotBeFound("language.specified=false");
+    }
+                @Test
+    @Transactional
+    public void getAllDocsByLanguageContainsSomething() throws Exception {
+        // Initialize the database
+        docRepository.saveAndFlush(doc);
+
+        // Get all the docList where language contains DEFAULT_LANGUAGE
+        defaultDocShouldBeFound("language.contains=" + DEFAULT_LANGUAGE);
+
+        // Get all the docList where language contains UPDATED_LANGUAGE
+        defaultDocShouldNotBeFound("language.contains=" + UPDATED_LANGUAGE);
+    }
+
+    @Test
+    @Transactional
+    public void getAllDocsByLanguageNotContainsSomething() throws Exception {
+        // Initialize the database
+        docRepository.saveAndFlush(doc);
+
+        // Get all the docList where language does not contain DEFAULT_LANGUAGE
+        defaultDocShouldNotBeFound("language.doesNotContain=" + DEFAULT_LANGUAGE);
+
+        // Get all the docList where language does not contain UPDATED_LANGUAGE
+        defaultDocShouldBeFound("language.doesNotContain=" + UPDATED_LANGUAGE);
+    }
+
+
+    @Test
+    @Transactional
+    public void getAllDocsByDescriptionIsEqualToSomething() throws Exception {
+        // Initialize the database
+        docRepository.saveAndFlush(doc);
+
+        // Get all the docList where description equals to DEFAULT_DESCRIPTION
+        defaultDocShouldBeFound("description.equals=" + DEFAULT_DESCRIPTION);
+
+        // Get all the docList where description equals to UPDATED_DESCRIPTION
+        defaultDocShouldNotBeFound("description.equals=" + UPDATED_DESCRIPTION);
+    }
+
+    @Test
+    @Transactional
+    public void getAllDocsByDescriptionIsNotEqualToSomething() throws Exception {
+        // Initialize the database
+        docRepository.saveAndFlush(doc);
+
+        // Get all the docList where description not equals to DEFAULT_DESCRIPTION
+        defaultDocShouldNotBeFound("description.notEquals=" + DEFAULT_DESCRIPTION);
+
+        // Get all the docList where description not equals to UPDATED_DESCRIPTION
+        defaultDocShouldBeFound("description.notEquals=" + UPDATED_DESCRIPTION);
+    }
+
+    @Test
+    @Transactional
+    public void getAllDocsByDescriptionIsInShouldWork() throws Exception {
+        // Initialize the database
+        docRepository.saveAndFlush(doc);
+
+        // Get all the docList where description in DEFAULT_DESCRIPTION or UPDATED_DESCRIPTION
+        defaultDocShouldBeFound("description.in=" + DEFAULT_DESCRIPTION + "," + UPDATED_DESCRIPTION);
+
+        // Get all the docList where description equals to UPDATED_DESCRIPTION
+        defaultDocShouldNotBeFound("description.in=" + UPDATED_DESCRIPTION);
+    }
+
+    @Test
+    @Transactional
+    public void getAllDocsByDescriptionIsNullOrNotNull() throws Exception {
+        // Initialize the database
+        docRepository.saveAndFlush(doc);
+
+        // Get all the docList where description is not null
+        defaultDocShouldBeFound("description.specified=true");
+
+        // Get all the docList where description is null
+        defaultDocShouldNotBeFound("description.specified=false");
+    }
+                @Test
+    @Transactional
+    public void getAllDocsByDescriptionContainsSomething() throws Exception {
+        // Initialize the database
+        docRepository.saveAndFlush(doc);
+
+        // Get all the docList where description contains DEFAULT_DESCRIPTION
+        defaultDocShouldBeFound("description.contains=" + DEFAULT_DESCRIPTION);
+
+        // Get all the docList where description contains UPDATED_DESCRIPTION
+        defaultDocShouldNotBeFound("description.contains=" + UPDATED_DESCRIPTION);
+    }
+
+    @Test
+    @Transactional
+    public void getAllDocsByDescriptionNotContainsSomething() throws Exception {
+        // Initialize the database
+        docRepository.saveAndFlush(doc);
+
+        // Get all the docList where description does not contain DEFAULT_DESCRIPTION
+        defaultDocShouldNotBeFound("description.doesNotContain=" + DEFAULT_DESCRIPTION);
+
+        // Get all the docList where description does not contain UPDATED_DESCRIPTION
+        defaultDocShouldBeFound("description.doesNotContain=" + UPDATED_DESCRIPTION);
+    }
+
+
+    @Test
+    @Transactional
+    public void getAllDocsByContentSha1IsEqualToSomething() throws Exception {
+        // Initialize the database
+        docRepository.saveAndFlush(doc);
+
+        // Get all the docList where contentSha1 equals to DEFAULT_CONTENT_SHA_1
+        defaultDocShouldBeFound("contentSha1.equals=" + DEFAULT_CONTENT_SHA_1);
+
+        // Get all the docList where contentSha1 equals to UPDATED_CONTENT_SHA_1
+        defaultDocShouldNotBeFound("contentSha1.equals=" + UPDATED_CONTENT_SHA_1);
+    }
+
+    @Test
+    @Transactional
+    public void getAllDocsByContentSha1IsNotEqualToSomething() throws Exception {
+        // Initialize the database
+        docRepository.saveAndFlush(doc);
+
+        // Get all the docList where contentSha1 not equals to DEFAULT_CONTENT_SHA_1
+        defaultDocShouldNotBeFound("contentSha1.notEquals=" + DEFAULT_CONTENT_SHA_1);
+
+        // Get all the docList where contentSha1 not equals to UPDATED_CONTENT_SHA_1
+        defaultDocShouldBeFound("contentSha1.notEquals=" + UPDATED_CONTENT_SHA_1);
+    }
+
+    @Test
+    @Transactional
+    public void getAllDocsByContentSha1IsInShouldWork() throws Exception {
+        // Initialize the database
+        docRepository.saveAndFlush(doc);
+
+        // Get all the docList where contentSha1 in DEFAULT_CONTENT_SHA_1 or UPDATED_CONTENT_SHA_1
+        defaultDocShouldBeFound("contentSha1.in=" + DEFAULT_CONTENT_SHA_1 + "," + UPDATED_CONTENT_SHA_1);
+
+        // Get all the docList where contentSha1 equals to UPDATED_CONTENT_SHA_1
+        defaultDocShouldNotBeFound("contentSha1.in=" + UPDATED_CONTENT_SHA_1);
+    }
+
+    @Test
+    @Transactional
+    public void getAllDocsByContentSha1IsNullOrNotNull() throws Exception {
+        // Initialize the database
+        docRepository.saveAndFlush(doc);
+
+        // Get all the docList where contentSha1 is not null
+        defaultDocShouldBeFound("contentSha1.specified=true");
+
+        // Get all the docList where contentSha1 is null
+        defaultDocShouldNotBeFound("contentSha1.specified=false");
+    }
+                @Test
+    @Transactional
+    public void getAllDocsByContentSha1ContainsSomething() throws Exception {
+        // Initialize the database
+        docRepository.saveAndFlush(doc);
+
+        // Get all the docList where contentSha1 contains DEFAULT_CONTENT_SHA_1
+        defaultDocShouldBeFound("contentSha1.contains=" + DEFAULT_CONTENT_SHA_1);
+
+        // Get all the docList where contentSha1 contains UPDATED_CONTENT_SHA_1
+        defaultDocShouldNotBeFound("contentSha1.contains=" + UPDATED_CONTENT_SHA_1);
+    }
+
+    @Test
+    @Transactional
+    public void getAllDocsByContentSha1NotContainsSomething() throws Exception {
+        // Initialize the database
+        docRepository.saveAndFlush(doc);
+
+        // Get all the docList where contentSha1 does not contain DEFAULT_CONTENT_SHA_1
+        defaultDocShouldNotBeFound("contentSha1.doesNotContain=" + DEFAULT_CONTENT_SHA_1);
+
+        // Get all the docList where contentSha1 does not contain UPDATED_CONTENT_SHA_1
+        defaultDocShouldBeFound("contentSha1.doesNotContain=" + UPDATED_CONTENT_SHA_1);
+    }
+
+
+    @Test
+    @Transactional
+    public void getAllDocsByNumberOfPagesIsEqualToSomething() throws Exception {
+        // Initialize the database
+        docRepository.saveAndFlush(doc);
+
+        // Get all the docList where numberOfPages equals to DEFAULT_NUMBER_OF_PAGES
+        defaultDocShouldBeFound("numberOfPages.equals=" + DEFAULT_NUMBER_OF_PAGES);
+
+        // Get all the docList where numberOfPages equals to UPDATED_NUMBER_OF_PAGES
+        defaultDocShouldNotBeFound("numberOfPages.equals=" + UPDATED_NUMBER_OF_PAGES);
+    }
+
+    @Test
+    @Transactional
+    public void getAllDocsByNumberOfPagesIsNotEqualToSomething() throws Exception {
+        // Initialize the database
+        docRepository.saveAndFlush(doc);
+
+        // Get all the docList where numberOfPages not equals to DEFAULT_NUMBER_OF_PAGES
+        defaultDocShouldNotBeFound("numberOfPages.notEquals=" + DEFAULT_NUMBER_OF_PAGES);
+
+        // Get all the docList where numberOfPages not equals to UPDATED_NUMBER_OF_PAGES
+        defaultDocShouldBeFound("numberOfPages.notEquals=" + UPDATED_NUMBER_OF_PAGES);
+    }
+
+    @Test
+    @Transactional
+    public void getAllDocsByNumberOfPagesIsInShouldWork() throws Exception {
+        // Initialize the database
+        docRepository.saveAndFlush(doc);
+
+        // Get all the docList where numberOfPages in DEFAULT_NUMBER_OF_PAGES or UPDATED_NUMBER_OF_PAGES
+        defaultDocShouldBeFound("numberOfPages.in=" + DEFAULT_NUMBER_OF_PAGES + "," + UPDATED_NUMBER_OF_PAGES);
+
+        // Get all the docList where numberOfPages equals to UPDATED_NUMBER_OF_PAGES
+        defaultDocShouldNotBeFound("numberOfPages.in=" + UPDATED_NUMBER_OF_PAGES);
+    }
+
+    @Test
+    @Transactional
+    public void getAllDocsByNumberOfPagesIsNullOrNotNull() throws Exception {
+        // Initialize the database
+        docRepository.saveAndFlush(doc);
+
+        // Get all the docList where numberOfPages is not null
+        defaultDocShouldBeFound("numberOfPages.specified=true");
+
+        // Get all the docList where numberOfPages is null
+        defaultDocShouldNotBeFound("numberOfPages.specified=false");
+    }
+
+    @Test
+    @Transactional
+    public void getAllDocsByNumberOfPagesIsGreaterThanOrEqualToSomething() throws Exception {
+        // Initialize the database
+        docRepository.saveAndFlush(doc);
+
+        // Get all the docList where numberOfPages is greater than or equal to DEFAULT_NUMBER_OF_PAGES
+        defaultDocShouldBeFound("numberOfPages.greaterThanOrEqual=" + DEFAULT_NUMBER_OF_PAGES);
+
+        // Get all the docList where numberOfPages is greater than or equal to UPDATED_NUMBER_OF_PAGES
+        defaultDocShouldNotBeFound("numberOfPages.greaterThanOrEqual=" + UPDATED_NUMBER_OF_PAGES);
+    }
+
+    @Test
+    @Transactional
+    public void getAllDocsByNumberOfPagesIsLessThanOrEqualToSomething() throws Exception {
+        // Initialize the database
+        docRepository.saveAndFlush(doc);
+
+        // Get all the docList where numberOfPages is less than or equal to DEFAULT_NUMBER_OF_PAGES
+        defaultDocShouldBeFound("numberOfPages.lessThanOrEqual=" + DEFAULT_NUMBER_OF_PAGES);
+
+        // Get all the docList where numberOfPages is less than or equal to SMALLER_NUMBER_OF_PAGES
+        defaultDocShouldNotBeFound("numberOfPages.lessThanOrEqual=" + SMALLER_NUMBER_OF_PAGES);
+    }
+
+    @Test
+    @Transactional
+    public void getAllDocsByNumberOfPagesIsLessThanSomething() throws Exception {
+        // Initialize the database
+        docRepository.saveAndFlush(doc);
+
+        // Get all the docList where numberOfPages is less than DEFAULT_NUMBER_OF_PAGES
+        defaultDocShouldNotBeFound("numberOfPages.lessThan=" + DEFAULT_NUMBER_OF_PAGES);
+
+        // Get all the docList where numberOfPages is less than UPDATED_NUMBER_OF_PAGES
+        defaultDocShouldBeFound("numberOfPages.lessThan=" + UPDATED_NUMBER_OF_PAGES);
+    }
+
+    @Test
+    @Transactional
+    public void getAllDocsByNumberOfPagesIsGreaterThanSomething() throws Exception {
+        // Initialize the database
+        docRepository.saveAndFlush(doc);
+
+        // Get all the docList where numberOfPages is greater than DEFAULT_NUMBER_OF_PAGES
+        defaultDocShouldNotBeFound("numberOfPages.greaterThan=" + DEFAULT_NUMBER_OF_PAGES);
+
+        // Get all the docList where numberOfPages is greater than SMALLER_NUMBER_OF_PAGES
+        defaultDocShouldBeFound("numberOfPages.greaterThan=" + SMALLER_NUMBER_OF_PAGES);
+    }
+
+
+    @Test
+    @Transactional
+    public void getAllDocsByCreatedAtIsEqualToSomething() throws Exception {
+        // Initialize the database
+        docRepository.saveAndFlush(doc);
+
+        // Get all the docList where createdAt equals to DEFAULT_CREATED_AT
+        defaultDocShouldBeFound("createdAt.equals=" + DEFAULT_CREATED_AT);
+
+        // Get all the docList where createdAt equals to UPDATED_CREATED_AT
+        defaultDocShouldNotBeFound("createdAt.equals=" + UPDATED_CREATED_AT);
+    }
+
+    @Test
+    @Transactional
+    public void getAllDocsByCreatedAtIsNotEqualToSomething() throws Exception {
+        // Initialize the database
+        docRepository.saveAndFlush(doc);
+
+        // Get all the docList where createdAt not equals to DEFAULT_CREATED_AT
+        defaultDocShouldNotBeFound("createdAt.notEquals=" + DEFAULT_CREATED_AT);
+
+        // Get all the docList where createdAt not equals to UPDATED_CREATED_AT
+        defaultDocShouldBeFound("createdAt.notEquals=" + UPDATED_CREATED_AT);
+    }
+
+    @Test
+    @Transactional
+    public void getAllDocsByCreatedAtIsInShouldWork() throws Exception {
+        // Initialize the database
+        docRepository.saveAndFlush(doc);
+
+        // Get all the docList where createdAt in DEFAULT_CREATED_AT or UPDATED_CREATED_AT
+        defaultDocShouldBeFound("createdAt.in=" + DEFAULT_CREATED_AT + "," + UPDATED_CREATED_AT);
+
+        // Get all the docList where createdAt equals to UPDATED_CREATED_AT
+        defaultDocShouldNotBeFound("createdAt.in=" + UPDATED_CREATED_AT);
+    }
+
+    @Test
+    @Transactional
+    public void getAllDocsByCreatedAtIsNullOrNotNull() throws Exception {
+        // Initialize the database
+        docRepository.saveAndFlush(doc);
+
+        // Get all the docList where createdAt is not null
+        defaultDocShouldBeFound("createdAt.specified=true");
+
+        // Get all the docList where createdAt is null
+        defaultDocShouldNotBeFound("createdAt.specified=false");
+    }
+
+    @Test
+    @Transactional
+    public void getAllDocsByUpdatedAtIsEqualToSomething() throws Exception {
+        // Initialize the database
+        docRepository.saveAndFlush(doc);
+
+        // Get all the docList where updatedAt equals to DEFAULT_UPDATED_AT
+        defaultDocShouldBeFound("updatedAt.equals=" + DEFAULT_UPDATED_AT);
+
+        // Get all the docList where updatedAt equals to UPDATED_UPDATED_AT
+        defaultDocShouldNotBeFound("updatedAt.equals=" + UPDATED_UPDATED_AT);
+    }
+
+    @Test
+    @Transactional
+    public void getAllDocsByUpdatedAtIsNotEqualToSomething() throws Exception {
+        // Initialize the database
+        docRepository.saveAndFlush(doc);
+
+        // Get all the docList where updatedAt not equals to DEFAULT_UPDATED_AT
+        defaultDocShouldNotBeFound("updatedAt.notEquals=" + DEFAULT_UPDATED_AT);
+
+        // Get all the docList where updatedAt not equals to UPDATED_UPDATED_AT
+        defaultDocShouldBeFound("updatedAt.notEquals=" + UPDATED_UPDATED_AT);
+    }
+
+    @Test
+    @Transactional
+    public void getAllDocsByUpdatedAtIsInShouldWork() throws Exception {
+        // Initialize the database
+        docRepository.saveAndFlush(doc);
+
+        // Get all the docList where updatedAt in DEFAULT_UPDATED_AT or UPDATED_UPDATED_AT
+        defaultDocShouldBeFound("updatedAt.in=" + DEFAULT_UPDATED_AT + "," + UPDATED_UPDATED_AT);
+
+        // Get all the docList where updatedAt equals to UPDATED_UPDATED_AT
+        defaultDocShouldNotBeFound("updatedAt.in=" + UPDATED_UPDATED_AT);
+    }
+
+    @Test
+    @Transactional
+    public void getAllDocsByUpdatedAtIsNullOrNotNull() throws Exception {
+        // Initialize the database
+        docRepository.saveAndFlush(doc);
+
+        // Get all the docList where updatedAt is not null
+        defaultDocShouldBeFound("updatedAt.specified=true");
+
+        // Get all the docList where updatedAt is null
+        defaultDocShouldNotBeFound("updatedAt.specified=false");
+    }
+    /**
+     * Executes the search, and checks that the default entity is returned.
+     */
+    private void defaultDocShouldBeFound(String filter) throws Exception {
+        restDocMockMvc.perform(get("/api/docs?sort=id,desc&" + filter))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.[*].id").value(hasItem(doc.getId().intValue())))
+            .andExpect(jsonPath("$.[*].title").value(hasItem(DEFAULT_TITLE)))
+            .andExpect(jsonPath("$.[*].language").value(hasItem(DEFAULT_LANGUAGE)))
+            .andExpect(jsonPath("$.[*].description").value(hasItem(DEFAULT_DESCRIPTION)))
+            .andExpect(jsonPath("$.[*].contentContentType").value(hasItem(DEFAULT_CONTENT_CONTENT_TYPE)))
+            .andExpect(jsonPath("$.[*].content").value(hasItem(Base64Utils.encodeToString(DEFAULT_CONTENT))))
+            .andExpect(jsonPath("$.[*].contentSha1").value(hasItem(DEFAULT_CONTENT_SHA_1)))
+            .andExpect(jsonPath("$.[*].numberOfPages").value(hasItem(DEFAULT_NUMBER_OF_PAGES)))
+            .andExpect(jsonPath("$.[*].createdAt").value(hasItem(DEFAULT_CREATED_AT.toString())))
+            .andExpect(jsonPath("$.[*].updatedAt").value(hasItem(DEFAULT_UPDATED_AT.toString())));
+
+        // Check, that the count call also returns 1
+        restDocMockMvc.perform(get("/api/docs/count?sort=id,desc&" + filter))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(content().string("1"));
+    }
+
+    /**
+     * Executes the search, and checks that the default entity is not returned.
+     */
+    private void defaultDocShouldNotBeFound(String filter) throws Exception {
+        restDocMockMvc.perform(get("/api/docs?sort=id,desc&" + filter))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$").isArray())
+            .andExpect(jsonPath("$").isEmpty());
+
+        // Check, that the count call also returns 0
+        restDocMockMvc.perform(get("/api/docs/count?sort=id,desc&" + filter))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(content().string("0"));
+    }
+
+
     @Test
     @Transactional
     public void getNonExistingDoc() throws Exception {
@@ -270,10 +872,11 @@ public class DocResourceIT {
             .numberOfPages(UPDATED_NUMBER_OF_PAGES)
             .createdAt(UPDATED_CREATED_AT)
             .updatedAt(UPDATED_UPDATED_AT);
+        DocDTO docDTO = docMapper.toDto(updatedDoc);
 
         restDocMockMvc.perform(put("/api/docs")
             .contentType(MediaType.APPLICATION_JSON)
-            .content(TestUtil.convertObjectToJsonBytes(updatedDoc)))
+            .content(TestUtil.convertObjectToJsonBytes(docDTO)))
             .andExpect(status().isOk());
 
         // Validate the Doc in the database
@@ -297,11 +900,12 @@ public class DocResourceIT {
         int databaseSizeBeforeUpdate = docRepository.findAll().size();
 
         // Create the Doc
+        DocDTO docDTO = docMapper.toDto(doc);
 
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
         restDocMockMvc.perform(put("/api/docs")
             .contentType(MediaType.APPLICATION_JSON)
-            .content(TestUtil.convertObjectToJsonBytes(doc)))
+            .content(TestUtil.convertObjectToJsonBytes(docDTO)))
             .andExpect(status().isBadRequest());
 
         // Validate the Doc in the database

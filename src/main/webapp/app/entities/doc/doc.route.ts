@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpResponse } from '@angular/common/http';
 import { Resolve, ActivatedRouteSnapshot, Routes, Router } from '@angular/router';
+import { JhiResolvePagingParams } from 'ng-jhipster';
 import { Observable, of, EMPTY } from 'rxjs';
 import { flatMap } from 'rxjs/operators';
 
@@ -11,6 +12,7 @@ import { DocService } from './doc.service';
 import { DocComponent } from './doc.component';
 import { DocDetailComponent } from './doc-detail.component';
 import { DocUpdateComponent } from './doc-update.component';
+import { DocSliderComponent } from './doc-slider.component';
 
 @Injectable({ providedIn: 'root' })
 export class DocResolve implements Resolve<IDoc> {
@@ -38,8 +40,12 @@ export const docRoute: Routes = [
   {
     path: '',
     component: DocComponent,
+    resolve: {
+      pagingParams: JhiResolvePagingParams
+    },
     data: {
       authorities: [Authority.USER],
+      defaultSort: 'id,asc',
       pageTitle: 'docpreviewApp.doc.home.title'
     },
     canActivate: [UserRouteAccessService]
@@ -47,6 +53,18 @@ export const docRoute: Routes = [
   {
     path: ':id/view',
     component: DocDetailComponent,
+    resolve: {
+      doc: DocResolve
+    },
+    data: {
+      authorities: [Authority.USER],
+      pageTitle: 'docpreviewApp.doc.home.title'
+    },
+    canActivate: [UserRouteAccessService]
+  },
+  {
+    path: ':id/slider',
+    component: DocSliderComponent,
     resolve: {
       doc: DocResolve
     },

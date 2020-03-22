@@ -1,38 +1,19 @@
-package docpreview.domain;
+package docpreview.service.dto;
 
-import java.io.Serializable;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import java.time.Instant;
-
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.validation.constraints.*;
+import java.io.Serializable;
+import java.util.Objects;
 import javax.persistence.Lob;
-import javax.persistence.SequenceGenerator;
-import javax.persistence.Table;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
-import javax.validation.constraints.Size;
-
-import org.hibernate.annotations.Cache;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 /**
- * Entity Doc
+ * A DTO for the {@link docpreview.domain.Doc} entity.
  */
-@Entity
-@Table(name = "doc")
-@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
-public class Doc implements Serializable {
-
-	public static final String ENTITY_NAME = "doc";
-
-    private static final long serialVersionUID = 1L;
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
-    @SequenceGenerator(name = "sequenceGenerator")
+@ApiModel(description = "Entity Doc")
+public class DocDTO implements Serializable {
+    
     private Long id;
 
     /**
@@ -40,58 +21,55 @@ public class Doc implements Serializable {
      */
     @NotNull
     @Size(min = 2)
-    @Column(name = "title", nullable = false)
+    @ApiModelProperty(value = "Title du document", required = true)
     private String title;
 
     /**
      * Language of the document (ISO code).
      */
-    @Column(name = "language")
+    @ApiModelProperty(value = "Language of the document (ISO code).")
     private String language;
 
     /**
      * Description of the document
      */
     @Size(max = 2000)
-    @Column(name = "description", length = 2000)
+    @ApiModelProperty(value = "Description of the document")
     private String description;
 
     /**
      * Content of the document
      */
     
+    @ApiModelProperty(value = "Content of the document", required = true)
     @Lob
-    @Column(name = "content", nullable = false)
     private byte[] content;
 
-    @Column(name = "content_content_type", nullable = false)
     private String contentContentType;
-
     @Size(min = 40, max = 40)
     @Pattern(regexp = "[a-f0-9]{40}")
-    @Column(name = "content_sha_1", length = 40)
     private String contentSha1;
 
     /**
      * Number of pages of the document
      */
-    @Column(name = "number_of_pages")
+    @ApiModelProperty(value = "Number of pages of the document")
     private Integer numberOfPages;
 
     /**
      * Creation date
      */
     @NotNull
-    @Column(name = "created_at", nullable = false)
+    @ApiModelProperty(value = "Creation date", required = true)
     private Instant createdAt;
 
     /**
      * Update date
      */
-    @Column(name = "updated_at")
+    @ApiModelProperty(value = "Update date")
     private Instant updatedAt;
 
-    // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove
+    
     public Long getId() {
         return id;
     }
@@ -104,22 +82,12 @@ public class Doc implements Serializable {
         return title;
     }
 
-    public Doc title(String title) {
-        this.title = title;
-        return this;
-    }
-
     public void setTitle(String title) {
         this.title = title;
     }
 
     public String getLanguage() {
         return language;
-    }
-
-    public Doc language(String language) {
-        this.language = language;
-        return this;
     }
 
     public void setLanguage(String language) {
@@ -130,22 +98,12 @@ public class Doc implements Serializable {
         return description;
     }
 
-    public Doc description(String description) {
-        this.description = description;
-        return this;
-    }
-
     public void setDescription(String description) {
         this.description = description;
     }
 
     public byte[] getContent() {
         return content;
-    }
-
-    public Doc content(byte[] content) {
-        this.content = content;
-        return this;
     }
 
     public void setContent(byte[] content) {
@@ -156,22 +114,12 @@ public class Doc implements Serializable {
         return contentContentType;
     }
 
-    public Doc contentContentType(String contentContentType) {
-        this.contentContentType = contentContentType;
-        return this;
-    }
-
     public void setContentContentType(String contentContentType) {
         this.contentContentType = contentContentType;
     }
 
     public String getContentSha1() {
         return contentSha1;
-    }
-
-    public Doc contentSha1(String contentSha1) {
-        this.contentSha1 = contentSha1;
-        return this;
     }
 
     public void setContentSha1(String contentSha1) {
@@ -182,22 +130,12 @@ public class Doc implements Serializable {
         return numberOfPages;
     }
 
-    public Doc numberOfPages(Integer numberOfPages) {
-        this.numberOfPages = numberOfPages;
-        return this;
-    }
-
     public void setNumberOfPages(Integer numberOfPages) {
         this.numberOfPages = numberOfPages;
     }
 
     public Instant getCreatedAt() {
         return createdAt;
-    }
-
-    public Doc createdAt(Instant createdAt) {
-        this.createdAt = createdAt;
-        return this;
     }
 
     public void setCreatedAt(Instant createdAt) {
@@ -208,41 +146,39 @@ public class Doc implements Serializable {
         return updatedAt;
     }
 
-    public Doc updatedAt(Instant updatedAt) {
-        this.updatedAt = updatedAt;
-        return this;
-    }
-
     public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
     }
-    // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here, do not remove
 
     @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof Doc)) {
+        if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        return id != null && id.equals(((Doc) o).id);
+
+        DocDTO docDTO = (DocDTO) o;
+        if (docDTO.getId() == null || getId() == null) {
+            return false;
+        }
+        return Objects.equals(getId(), docDTO.getId());
     }
 
     @Override
     public int hashCode() {
-        return 31;
+        return Objects.hashCode(getId());
     }
 
     @Override
     public String toString() {
-        return "Doc{" +
+        return "DocDTO{" +
             "id=" + getId() +
             ", title='" + getTitle() + "'" +
             ", language='" + getLanguage() + "'" +
             ", description='" + getDescription() + "'" +
             ", content='" + getContent() + "'" +
-            ", contentContentType='" + getContentContentType() + "'" +
             ", contentSha1='" + getContentSha1() + "'" +
             ", numberOfPages=" + getNumberOfPages() +
             ", createdAt='" + getCreatedAt() + "'" +

@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { JhiDataUtils } from 'ng-jhipster';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 import { IDoc } from 'app/shared/model/doc.model';
 
@@ -11,7 +12,10 @@ import { IDoc } from 'app/shared/model/doc.model';
 export class DocDetailComponent implements OnInit {
   doc: IDoc | null = null;
 
-  constructor(protected dataUtils: JhiDataUtils, protected activatedRoute: ActivatedRoute) {}
+  pdfHeight = 1200;
+  pdfWidth = 900;
+
+  constructor(protected dataUtils: JhiDataUtils, protected activatedRoute: ActivatedRoute, private sanitizer: DomSanitizer) {}
 
   ngOnInit(): void {
     this.activatedRoute.data.subscribe(({ doc }) => (this.doc = doc));
@@ -27,5 +31,13 @@ export class DocDetailComponent implements OnInit {
 
   previousState(): void {
     window.history.back();
+  }
+
+  getSafeURL(): SafeResourceUrl {
+    return this.sanitizer.bypassSecurityTrustResourceUrl('/api/docs/' + this.doc?.id + '/content');
+  }
+
+  isPdf(): boolean {
+    return this.doc?.contentContentType === 'application/pdf';
   }
 }

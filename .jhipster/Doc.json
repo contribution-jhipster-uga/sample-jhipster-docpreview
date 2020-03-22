@@ -13,7 +13,7 @@
         },
         {
             "fieldName": "language",
-            "javadoc": "Language of the document (iso code).",
+            "javadoc": "Language of the document (ISO code).",
             "fieldType": "String"
         },
         {
@@ -71,10 +71,10 @@
     "changelogDate": "20200320190200",
     "javadoc": "Entity Doc",
     "entityTableName": "doc",
-    "dto": "no",
-    "pagination": "no",
-    "service": "no",
-    "jpaMetamodelFiltering": false,
+    "dto": "mapstruct",
+    "pagination": "pagination",
+    "service": "serviceImpl",
+    "jpaMetamodelFiltering": true,
     "fluentMethods": true,
     "readOnly": false,
     "embedded": false,
